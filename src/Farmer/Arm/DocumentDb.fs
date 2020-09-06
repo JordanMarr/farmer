@@ -32,7 +32,7 @@ module DatabaseAccounts =
                 member this.JsonModel =
                     {| ``type`` = containers.ArmValue
                        name = sprintf "%s/%s/%s" this.Account.Value this.Database.Value this.Name.Value
-                       apiVersion = "2020-03-01"
+                       apiVersion = "2020-06-01-preview"
                        dependsOn = [ this.Database.Value ]
                        properties =
                            {| resource =
@@ -68,17 +68,19 @@ module DatabaseAccounts =
     type SqlDatabase =
         { Name : ResourceName
           Account : ResourceName
-          Throughput : int<RU> }
+          Throughput : int<RU> option }
         interface IArmResource with
             member this.ResourceName = this.Name
             member this.JsonModel =
                 {| ``type`` = sqlDatabases.ArmValue
                    name = sprintf "%s/%s" this.Account.Value this.Name.Value
-                   apiVersion = "2020-03-01"
+                   apiVersion = "2020-06-01-preview"
                    dependsOn = [ this.Account.Value ]
                    properties =
                        {| resource = {| id = this.Name.Value |}
-                          options = {| throughput = string this.Throughput |} |}
+                          options = 
+                            {| throughput = this.Throughput |> Option.map string |> Option.defaultValue null |} 
+                       |}
                 |} :> _
 
 type DatabaseAccount =
@@ -88,6 +90,7 @@ type DatabaseAccount =
       FailoverPolicy : FailoverPolicy
       PublicNetworkAccess : FeatureFlag
       FreeTier : bool
+      Serverless : bool
       Tags: Map<string,string>  }
     member this.MaxStatelessPrefix =
         match this.ConsistencyPolicy with
@@ -120,7 +123,7 @@ type DatabaseAccount =
         member this.JsonModel =
             {| ``type`` = databaseAccounts.ArmValue
                name = this.Name.Value
-               apiVersion = "2020-03-01"
+               apiVersion = "2020-06-01-preview"
                location = this.Location.ArmValue
                kind = "GlobalDocumentDB"
                properties =
@@ -141,6 +144,9 @@ type DatabaseAccount =
                         | locations -> box locations
                       publicNetworkAccess = string this.PublicNetworkAccess
                       enableFreeTier = this.FreeTier
+                      capabilities = [ 
+                        if this.Serverless then {| name = "EnableServerless" |} 
+                      ]
                    |} |> box
                tags = this.Tags
             |} :> _
