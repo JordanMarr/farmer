@@ -137,7 +137,7 @@ type DatabaseAccount =
                         |}
                       databaseAccountOfferType = "Standard"
                       enableAutomaticFailover = this.EnableAutomaticFailover |> Option.toNullable
-                      autoenableMultipleWriteLocations = this.EnableMultipleWriteLocations |> Option.toNullable
+                      enableMultipleWriteLocations = this.EnableMultipleWriteLocations |> Option.toNullable
                       locations =
                         match this.FailoverLocations with
                         | [] -> null
